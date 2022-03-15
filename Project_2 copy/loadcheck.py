@@ -10,12 +10,16 @@ import matplotlib.pyplot as plt
 start_time = time.time()
 np.set_printoptions(threshold=sys.maxsize)
 
+
 #read in vocabular and labels text files. Can convert to sparse if needed.
 vocabulary = pd.read_csv("vocabulary.txt", header = None)
 labels = pd.read_csv("newsgrouplabels.txt", header = None)
 
 #load in saved sparse training data from categorization and load.py scripts.
 training_data = sparse.load_npz('final_training_sparse.npz')
+testing_data = sparse.load_npz('final_testing_sparse.npz')
+testing_data = testing_data[:, 1:61189]
+
 
 #helpful for understanding the structure of a sparse matrix, but not needed for our code.
 #print(training_data[:,61188])
@@ -63,10 +67,17 @@ beta_vector = []
 #this retains the position of each class in the training set, to use to sum up all xi in each class.
 total_length = 0
 
-#You get 51 data points
+#You get 51 data points by using range(0,100001, 2000). Use for checking best beta
 step_count = 0
-for B in range(0, 1001, 500):
-    beta = B/100000
+
+#Use for B in range(start, stop, step_size) for best beta
+#Use for B in [best_beta]: for testing on testing data for kaggle submission
+for B in [0.083]:
+    #use for single element list
+    beta = B
+    #use for B in range
+    #beta = B/100000
+    
     beta_vector.append(beta)
     for y in labels.index:
         Ypositions = []
@@ -107,30 +118,59 @@ for B in range(0, 1001, 500):
 
     #argmax should be a vector based function of the form log(P(Y)_MAE)+X_i*P(X|Y)_MAP^T, and result in a vector of size 1x20.
     #Test_X is a 2400 x 61188 matrix. so take each ROW and use it to make a prediction. Those rows are 1x61188.
+    
+    #testing_data is the test data supplied on kaggle. it is a 6773 x 61188 matrix.
     predictions = []
-    for x in range(0,test_X.shape[0]):
-        arg_search = PY_MAE + test_X[x, :]*MAP_estimate.transpose()
+    
+    #validation loop, keep on for B in range
+#    for x in range(0,test_X.shape[0]):
+#        arg_search = PY_MAE + test_X[x, :]*MAP_estimate.transpose()
+#        predictions.append(arg_search.argmax(axis = 1)+1)
+#    count_correct = 0
+#    for p in range(0,len(predictions)):
+#        if predictions[p] == test_Y[p, 0]:
+#            count_correct += 1
+#
+#    accuracy_probs.append(count_correct/test_X.shape[0])
+        
+    #testing data loop, keep on for B in [best_beta]
+    for x in range(0, testing_data.shape[0]):
+        arg_search = PY_MAE + testing_data[x, :]*MAP_estimate.transpose()
         predictions.append(arg_search.argmax(axis = 1)+1)
+        
+        
 
-    count_correct = 0
-    for p in range(0,len(predictions)):
-        if predictions[p] == test_Y[p, 0]:
-            count_correct += 1
-            
-    accuracy_probs.append(count_correct/test_X.shape[0])
     step_count += 1
     print(step_count)
 
 end_time = time.time()
-max_acc = max(accuracy_probs)
-print(max_acc)
-#max_beta = beta_vector.index(max_acc)
-plt.xscale("log")
-plt.plot(beta_vector, accuracy_probs)
-plt.xlabel("Beta")
-plt.ylabel("Accuracy")
-plt.title("Beta vs. Accuracy for Naive Bayes")
-plt.savefig("Beta_vs_Accuracy_for_Naive_Bayes_smaller.png")
-plt.show()
+##### only necessary for B in Range:
+#max_acc = max(accuracy_probs)
+#print(max_acc)
+#
+##max_beta = beta_vector.index(max_acc)
+#plt.xscale("log")
+#plt.plot(beta_vector, accuracy_probs)
+#plt.xlabel("Beta")
+#plt.ylabel("Accuracy")
+#plt.title("Beta vs. Accuracy for Naive Bayes")
+#plt.savefig("Beta_vs_Accuracy_for_Naive_Bayes_smaller.png")
+#plt.show()
+
+
+
 print("this takes", end_time-start_time, "seconds to run")
     
+    
+#### for B in [beta_beta]
+#saving prediction to a file.
+
+#make a list of elements from 12001 to 18774
+
+
+id_list = []
+for i in range(0,testing_data.shape[0]):
+    id_list.append(i+12001)
+pred_df = pd.DataFrame({"id": id_list, "class": predictions})
+pred_df.to_csv('submission.csv', index=False)
+print(pred_df)
