@@ -11,6 +11,7 @@ start_time = time.time()
 np.set_printoptions(threshold=sys.maxsize)
 
 
+
 #read in vocabular and labels text files. Can convert to sparse if needed.
 vocabulary = pd.read_csv("vocabulary.txt", header = None)
 labels = pd.read_csv("newsgrouplabels.txt", header = None)
@@ -122,10 +123,10 @@ for B in [0.083]:
     #testing_data is the test data supplied on kaggle. it is a 6773 x 61188 matrix.
     predictions = []
     
-    #validation loop, keep on for B in range
-#    for x in range(0,test_X.shape[0]):
-#        arg_search = PY_MAE + test_X[x, :]*MAP_estimate.transpose()
-#        predictions.append(arg_search.argmax(axis = 1)+1)
+    #validation loop, keep on for B in range (or when using test_X
+    for x in range(0,test_X.shape[0]):
+        arg_search = PY_MAE + test_X[x, :]*MAP_estimate.transpose()
+        predictions.append(arg_search.argmax(axis = 1)+1)
 #    count_correct = 0
 #    for p in range(0,len(predictions)):
 #        if predictions[p] == test_Y[p, 0]:
@@ -134,13 +135,31 @@ for B in [0.083]:
 #    accuracy_probs.append(count_correct/test_X.shape[0])
         
     #testing data loop, keep on for B in [best_beta]
-    for x in range(0, testing_data.shape[0]):
-        arg_search = PY_MAE + testing_data[x, :]*MAP_estimate.transpose()
-        predictions.append(arg_search.argmax(axis = 1)+1)
+#    for x in range(0, testing_data.shape[0]):
+#        arg_search = PY_MAE + testing_data[x, :]*MAP_estimate.transpose()
+#        predictions.append(arg_search.argmax(axis = 1)+1)
         
-        
+    #print(predictions)
+    print(predictions[1].item(0,0))
+    for p in range(0,len(predictions)):
+        predictions[p] = predictions[p].item(0,0)
+    print(len(predictions))
+    print(test_Y.shape[0])
 
+    #confusion matrix Cij, where the rows are the classes as predicted and the columns are actual values. The counter will add if i = j
+    confusion = pd.DataFrame(data = 0, index = range(1,21), columns = range(1,21))
+    for p in range(0,len(predictions)):
+        if predictions[p] == test_Y[p,0]:
+            confusion.loc[test_Y[p,0], test_Y[p,0]] = confusion.loc[test_Y[p,0], test_Y[p,0]] + 1
+        else:
+            confusion.loc[predictions[p], test_Y[p,0]] = confusion.loc[predictions[p], test_Y[p,0]] + 1
+    
+    print(confusion)
+    
     step_count += 1
+    
+    
+    
     print(step_count)
 
 end_time = time.time()
@@ -167,10 +186,14 @@ print("this takes", end_time-start_time, "seconds to run")
 
 #make a list of elements from 12001 to 18774
 
+#only use for when you are NOT making the confusion matrix
+#id_list = []
+#for i in range(0,testing_data.shape[0]):
+#    id_list.append(i+12001)
+#pred_df = pd.DataFrame({"id": id_list, "class": predictions})
+#pred_df.to_csv('submission.csv', index=False)
+#print(pred_df)
 
-id_list = []
-for i in range(0,testing_data.shape[0]):
-    id_list.append(i+12001)
-pred_df = pd.DataFrame({"id": id_list, "class": predictions})
-pred_df.to_csv('submission.csv', index=False)
-print(pred_df)
+
+#saving confusion matrix to a file.
+confusion.to_csv('confusion_NB.csv')
