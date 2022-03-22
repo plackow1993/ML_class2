@@ -196,4 +196,4 @@ print("this takes", end_time-start_time, "seconds to run")
 
 
 #saving confusion matrix to a file.
-confusion.to_csv('confusion_NB.csv')
+#confusion.to_csv('confusion_NB.csv')
