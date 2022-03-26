@@ -28,7 +28,7 @@ random_seed = 40
 np.random.seed(random_seed)
 
 #20% split of the training data into training and validation.
-training_X, test_X, training_Y, test_Y = train_test_split(training_data[:,1:-1], training_data[:,-1], test_size = 0.2, random_state = random_seed)
+training_X, test_X, training_Y, test_Y = train_test_split(training_data[:,1:-1], training_data[:,-1], test_size = 1/12000, random_state = random_seed)
 
 
 #normalization of training_X by attribute for overflow correction. So SUMj(X_i,j)=1
@@ -74,7 +74,7 @@ W_sparse = sparse.csr_matrix(W)
 #step limit for testing algorithm. Step limit as a vector takes a long time. So for each step limit: 500, 1000, 5000, 10000, chosen in answering question 3, i will alter the etal and lambl lists.
 
 #step_limitl = [2,3,4]
-step_limitl = [5000]
+step_limitl = [50]
 
 #Eg: for step_limit = 500, 1000: etal and lambl are length 10 vectors from 0.01 to 0.001. These do not take so long. But for step_limit = 5000, these vectors should be about length 5-8. To account for the more steps taken. Edit: just going to make them all 4. So im only doing this 16 times instead of 100
 
@@ -118,7 +118,7 @@ for step_limit in step_limitl:
                 print(step)
                 
                 
-            ########### Testing accuracy for the test data
+            ########### Testing accuracy for the test data, use with longer eta and lambda with the different step sizes to print these matrices.
 #            unnormal = W_sparse@test_X.transpose()
 #            unnormal[-1, :] = one.transpose()
 #            normal = normalize(unnormal, norm = 'l1', axis =0)
@@ -139,19 +139,21 @@ for step_limit in step_limitl:
             
                 if resid.sum() < 1000:
                     eta = 0.007
-                    lamb = 0.01
+                    lamb = 0.1
                 print(resid.sum())
 
     frame_list.append(step_frame)
     print(step_limit)
 #print(len(frame_list))
+## Use for printing and saving matrices of step frames in lamda and eta for different step_sizes in loop
 #for i in range(0,len(frame_list)):
 #    name_string_1 = str(step_limitl[i])
 #    name_string = "step_limit_" + name_string_1 + "_errors.csv"
 #    print(name_string)
 #    frame_list[i].to_csv(name_string)
-#The chose class of an example Z (1x61188) vector = argmax (W_sparse*ZT). W_sparse = matrix of size kx61189. So W_sparse*Z^T = kx1. Which class_k gives the largest W_sparse*Z^T.
-#Choose test example.
+
+##The chosen class of an example Z (1x61188) vector = argmax (W_sparse*ZT). W_sparse = matrix of size kx61189. So W_sparse*Z^T = kx1. Which class_k gives the largest W_sparse*Z^T.
+##Choose test example.
 
 #for x in range(1,50):
 #    exp_test = test_X[x, :]
@@ -170,13 +172,13 @@ for i in range(0,testing_data.shape[0]):
     id_list.append(i+12001)
 
 
-#preparing test matrix for later accuracy calculations (need to add a 1 for W0
+##preparing test matrix for later accuracy calculations (need to add a 1 for W0
 ones_list = [1]*testing_data.shape[0]
 ones = sparse.csr_matrix(ones_list, [(1, testing_data.shape[0])])
 ones = ones.transpose()
 testing_data = sparse.hstack((ones, testing_data))
 
-#adjust W_sparse so that W_K = 1-Sum(W_1 to W_K-1)
+##adjust W_sparse so that W_K = 1-Sum(W_1 to W_K-1)
 call_unnormal = W_sparse@testing_data.transpose()
 call_unnormal[-1, :] = ones.transpose()
 call_normal = normalize(call_unnormal, norm = 'l1', axis =0)
@@ -192,7 +194,7 @@ pred_df.to_csv('logistic_submission.csv', index =False)
 
 ######### Confusion Matrix
 
-#preparing test matrix for later accuracy calculations (need to add a 1 for W0
+##preparing test matrix for later accuracy calculations (need to add a 1 for W0
 ones_list = [1]*test_X.shape[0]
 ones = sparse.csr_matrix(ones_list, [(1, test_X.shape[0])])
 ones = ones.transpose()
@@ -210,13 +212,15 @@ for att in range(0,test_X.shape[0]):
     conf_frame_calls.append(conf_call[att].item(0,0))
 print(conf_frame_calls)
 
+
+##### Running this will override my local (ken's confusion matrix. Leave commented to keep the confusion matrix.
 confusion = pd.DataFrame(data = 0, index = range(1,21), columns = range(1,21))
 for p in range(0,len(conf_frame_calls)):
     if conf_frame_calls[p] == test_Y[p,0]:
         confusion.loc[test_Y[p,0], test_Y[p,0]] = confusion.loc[test_Y[p,0], test_Y[p,0]] + 1
-       
+
     else:
         confusion.loc[conf_frame_calls[p], test_Y[p,0]] = confusion.loc[conf_frame_calls[p], test_Y[p,0]] + 1
-        
 
-confusion.to_csv('confusion_log.csv')
+
+confusion.to_csv('confusion_logtest.csv')
