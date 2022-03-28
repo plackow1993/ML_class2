@@ -28,7 +28,7 @@ random_seed = 40
 np.random.seed(random_seed)
 
 #20% split of the training data into training and validation.
-training_X, test_X, training_Y, test_Y = train_test_split(training_data[:,1:-1], training_data[:,-1], test_size = 1/12000, random_state = random_seed)
+training_X, test_X, training_Y, test_Y = train_test_split(training_data[:,1:-1], training_data[:,-1], test_size = 0.2, random_state = random_seed)
 
 
 #normalization of training_X by attribute for overflow correction. So SUMj(X_i,j)=1
@@ -50,7 +50,7 @@ delta = sparse.csr_matrix(delta)
 #makes a dataframe of size 20x61189 (kx(n+1)), w0 should be multiplied by 1 in the X^T matrix. So X_T should be 61189 x 9600, with the first column being 1s.
 W = pd.DataFrame(data = np.random.rand(20, training_X.shape[1]+1)/1000, index = range(1,21), columns = range(0, training_X.shape[1]+1) )
 
-
+test_X = normalize(test_X, norm = 'l1', axis =0)
 
 ######## Create X_T matrix with an added column of 1s.
 #training_X is a 9600 x 61188 matrix, or m x n
@@ -74,7 +74,7 @@ W_sparse = sparse.csr_matrix(W)
 #step limit for testing algorithm. Step limit as a vector takes a long time. So for each step limit: 500, 1000, 5000, 10000, chosen in answering question 3, i will alter the etal and lambl lists.
 
 #step_limitl = [2,3,4]
-step_limitl = [50]
+step_limitl = [3000]
 
 #Eg: for step_limit = 500, 1000: etal and lambl are length 10 vectors from 0.01 to 0.001. These do not take so long. But for step_limit = 5000, these vectors should be about length 5-8. To account for the more steps taken. Edit: just going to make them all 4. So im only doing this 16 times instead of 100
 
@@ -176,10 +176,13 @@ for i in range(0,testing_data.shape[0]):
 ones_list = [1]*testing_data.shape[0]
 ones = sparse.csr_matrix(ones_list, [(1, testing_data.shape[0])])
 ones = ones.transpose()
+testing_data = normalize(testing_data, norm = 'l1', axis =0)
 testing_data = sparse.hstack((ones, testing_data))
+
 
 ##adjust W_sparse so that W_K = 1-Sum(W_1 to W_K-1)
 call_unnormal = W_sparse@testing_data.transpose()
+call_unnormal.data = np.exp(call_unnormal.data)
 call_unnormal[-1, :] = ones.transpose()
 call_normal = normalize(call_unnormal, norm = 'l1', axis =0)
 class_call = []
@@ -195,32 +198,34 @@ pred_df.to_csv('logistic_submission.csv', index =False)
 ######### Confusion Matrix
 
 ##preparing test matrix for later accuracy calculations (need to add a 1 for W0
-ones_list = [1]*test_X.shape[0]
-ones = sparse.csr_matrix(ones_list, [(1, test_X.shape[0])])
-ones = ones.transpose()
-test_X = sparse.hstack((ones, test_X))
+#ones_list = [1]*test_X.shape[0]
+#ones = sparse.csr_matrix(ones_list, [(1, test_X.shape[0])])
+#ones = ones.transpose()
+#test_X = sparse.hstack((ones, test_X))
 
-print(test_X.shape, W_sparse.shape)
-conf_unnormal = W_sparse@test_X.transpose()
-conf_unnormal[-1,:] = ones.transpose()
-conf_normal = normalize(conf_unnormal, norm = 'l1', axis =0)
-conf_call = []
-conf_frame_calls = []
-for att in range(0,test_X.shape[0]):
-    call_vec = conf_normal[:,att]
-    conf_call.append(call_vec.argmax(axis = 0)+1)
-    conf_frame_calls.append(conf_call[att].item(0,0))
-print(conf_frame_calls)
+#
+#print(test_X.shape, W_sparse.shape)
+#conf_unnormal = W_sparse@test_X.transpose()
+#conf_unnormal.data = np.exp(conf_unnormal.data)
+#conf_unnormal[-1,:] = ones.transpose()
+#conf_normal = normalize(conf_unnormal, norm = 'l1', axis =0)
+#conf_call = []
+#conf_frame_calls = []
+#for att in range(0,test_X.shape[0]):
+#    call_vec = conf_normal[:,att]
+#    conf_call.append(call_vec.argmax(axis = 0)+1)
+#    conf_frame_calls.append(conf_call[att].item(0,0))
+#print(conf_frame_calls)
 
 
 ##### Running this will override my local (ken's confusion matrix. Leave commented to keep the confusion matrix.
-confusion = pd.DataFrame(data = 0, index = range(1,21), columns = range(1,21))
-for p in range(0,len(conf_frame_calls)):
-    if conf_frame_calls[p] == test_Y[p,0]:
-        confusion.loc[test_Y[p,0], test_Y[p,0]] = confusion.loc[test_Y[p,0], test_Y[p,0]] + 1
-
-    else:
-        confusion.loc[conf_frame_calls[p], test_Y[p,0]] = confusion.loc[conf_frame_calls[p], test_Y[p,0]] + 1
-
-
-confusion.to_csv('confusion_logtest.csv')
+#confusion = pd.DataFrame(data = 0, index = range(1,21), columns = range(1,21))
+#for p in range(0,len(conf_frame_calls)):
+#    if conf_frame_calls[p] == test_Y[p,0]:
+#        confusion.loc[test_Y[p,0], test_Y[p,0]] = confusion.loc[test_Y[p,0], test_Y[p,0]] + 1
+#
+#    else:
+#        confusion.loc[conf_frame_calls[p], test_Y[p,0]] = confusion.loc[conf_frame_calls[p], test_Y[p,0]] + 1
+#
+#
+#confusion.to_csv('confusion_logtest.csv')

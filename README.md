@@ -43,7 +43,7 @@ Model 2 (logistic regression):
         
     Making a confusion matrix.
         You'll want this to run with only one eta, one lambda, and one step_limit.
-        Use lines 198-226 for this to run.
+        Use lines 201-231 for this to run.
         
 Entropy for question 6 and printing out top 100 words:
     This is located in the entropy.py file
