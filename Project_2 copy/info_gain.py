@@ -32,7 +32,7 @@ random_seed = 40
 np.random.seed(random_seed)
 
 #20% split of the training data into training and validation.
-training_X, test_X, training_Y, test_Y = train_test_split(training_data[:,1:-1], training_data[:,-1], test_size = 0.005, random_state = random_seed)
+training_X, test_X, training_Y, test_Y = train_test_split(training_data[:,1:-1], training_data[:,-1], test_size = 0.02, random_state = random_seed)
 
 #print(training_X.sum(axis = 1))
 
@@ -80,7 +80,7 @@ print(yes_frame.shape)
 yes_size = yes_frame.sum(axis = 0)
 print(yes_size)
 #only need to save the yes frame once
-sparse.save_npz('yes_frame_entropy_problem6_all_training.npz', yes_frame)
+sparse.save_npz('yes_frame_entropy_problem6.npz', yes_frame)
 end_time = time.time()
 print("all x_is exs take", end_time-start_time, "seconds")
 quit()

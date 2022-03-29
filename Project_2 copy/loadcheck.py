@@ -39,7 +39,7 @@ training_X, test_X, training_Y, test_Y = train_test_split(training_data[:,1:-1],
 #quit()
 #########################################
 
-####construction of MAE for P(Y)
+####construction of MLE for P(Y)
 #construct this first, since this is independent of beta. Saves a ton of time when looping over different beta.
 vector_totals = []
 for y in labels.index:
@@ -49,9 +49,9 @@ for y in labels.index:
             totals += 1
     vector_totals.append(totals)
 vector_totals = sparse.csr_matrix(vector_totals)
-PY_MAE = vector_totals/sparse.csr_matrix.sum(vector_totals)
-PY_MAE.data = np.log(PY_MAE.data)
-print(PY_MAE.shape)
+PY_MLE = vector_totals/sparse.csr_matrix.sum(vector_totals)
+PY_MLE.data = np.log(PY_MLE.data)
+print(PY_MLE.shape)
 
 ######construction of the MAP P(X|Y).
 
@@ -123,7 +123,7 @@ for B in Beta:
 
 
 
-    #argmax should be a vector based function of the form log(P(Y)_MAE)+X_i*P(X|Y)_MAP^T, and result in a vector of size 1x20.
+    #argmax should be a vector based function of the form log(P(Y)_MLE)+X_i*P(X|Y)_MAP^T, and result in a vector of size 1x20.
     #Test_X is a 2400 x 61188 matrix. so take each ROW and use it to make a prediction. Those rows are 1x61188.
     
     #testing_data is the test data supplied on kaggle. it is a 6773 x 61188 matrix.
@@ -133,7 +133,7 @@ for B in Beta:
     
 ####### TS/CM validation loop, keep on for Beta =list (or when using test_X in CM)
 #    for x in range(0,test_X.shape[0]):
-#        arg_search = PY_MAE + test_X[x, :]*MAP_estimate.transpose()
+#        arg_search = PY_MLE + test_X[x, :]*MAP_estimate.transpose()
 #        predictions.append(arg_search.argmax(axis = 1)+1)
 #    count_correct = 0
 #    for p in range(0,len(predictions)):
@@ -146,7 +146,7 @@ for B in Beta:
 ###### BB testing data loop, keep on for B in [best_beta]
 
     for x in range(0, testing_data.shape[0]):
-        arg_search = PY_MAE + testing_data[x, :]*MAP_estimate.transpose()
+        arg_search = PY_MLE + testing_data[x, :]*MAP_estimate.transpose()
         predictions.append(arg_search.argmax(axis = 1)+1)
         print(x)
 
