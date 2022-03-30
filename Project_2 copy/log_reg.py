@@ -139,7 +139,7 @@ for step_limit in step_limitl:
             
                 if resid.sum() < 1000:
                     eta = 0.007
-                    lamb = 0.1
+                    lamb = 0.02
                 print(resid.sum())
 
     frame_list.append(step_frame)
@@ -193,6 +193,7 @@ for att in range(0, testing_data.shape[0]):
     data_frame_calls.append(class_call[att].item(0,0))
 pred_df = pd.DataFrame({"id": id_list, "class": data_frame_calls})
 pred_df.to_csv('logistic_submission.csv', index =False)
+
 
 
 ######### Confusion Matrix
