@@ -68,7 +68,7 @@ total_length = 0
 #You get 51 data points by using range(0,100001, 200). Use for checking best beta
 step_count = 0
 
-#Use "for B in Beta:" that is a list for finding best beta that trains the model (beta = 0.006), with 20% of training used for validation
+#Use "for B in Beta:" that is a list for finding best beta that trains the model (beta = 0.005), with 20% of training used for validation
 #Use "for B in [best_beta]:" for testing on testing data for kaggle submission
 #### TS
 #Beta = [0.00001, 0.00005, 0.0001, 0.0005, 0.001, 0.005,  0.01, 0.05,  0.5, 1]
