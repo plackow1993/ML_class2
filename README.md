@@ -1,5 +1,7 @@
 # Project 2 Readme
 
+ALL FILES REQUIRE vocabulary.txt, newsgrouplables.txt to be run. 
+
 data preparing:
     categorization.py is the file the loads in the training data and the testing data. These csv files are large enough that its better to read the data in chunks and write them to a csr_matrix, as well as stack those matrices on top of each other for one final csr_matrix of the training data and the testing data, respectively. This will output a file called "[type of data]_sparse.npz"
     Because of the chunk size syntax of python, it misses the last row of the testing and training data. So, load.py takes in those npz files created by categorization.py, and outputs another npz file called "final_[type of data]_sparse.npz". this file will be read into the main programs for naive bayes and logistic regression.
